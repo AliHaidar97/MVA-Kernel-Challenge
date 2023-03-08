@@ -20,14 +20,18 @@ def compute_product_graph(G1,G2):
         return None
     '''
     
-    P = nx.Graph()
     '''
+    P = nx.Graph()
     nodes = []
     for l in nx.product.product(G1, G2):
         if (G1.nodes[l[0]]['labels'][0] == G2.nodes[l[1]]['labels'][0]):
             nodes.append(l)
     P.add_nodes_from(nodes)
-    ''' 
+    
+    
+    
+    
+    
     edges = []
     for e1 in list(G1.edges):
         for e2 in list(G2.edges):
@@ -38,11 +42,23 @@ def compute_product_graph(G1,G2):
             if((G1.nodes[a]['labels'][0] == G2.nodes[c]['labels'][0]) and (G1.nodes[b]['labels'][0] == G2.nodes[d]['labels'][0]) and (G1.edges[e1]['labels'] == G2.edges[e2]['labels'])):
                 edges.append(((a,c),(b,d)))
     P.add_edges_from(edges)     
+    ''' 
+    P = nx.Graph()
+    edges = []
+    for l in G1.keys():
+        if(l in G2):
+            list_edges_1 = G1[l]
+            list_edges_2 = G2[l]
+            for (a,b) in list_edges_1:
+                for (c,d) in list_edges_2:
+                    edges.append(((a,c),(b,d)))
+                    
+    P.add_edges_from(edges)
     
     if(len(list(P.nodes))==0):
         return None
          
-    A = nx.adjacency_matrix(P).A + np.eye(len(list(P.nodes)))
+    A = nx.adjacency_matrix(P).A #+ np.eye(len(list(P.nodes)))
     
     
     return A

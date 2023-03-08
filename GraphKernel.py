@@ -40,13 +40,34 @@ class RandomWalkKernel:
         
         return K
 
+    def generate_pointers_graph(self,list_graph):
+        pointers_list = []
+        for G in tqdm(list_graph):
+            pointers = dict()
+            for e in G.edges:
+                a = e[0]
+                b = e[1]
+                l_a = G.nodes[a]['labels'][0]
+                l_b = G.nodes[b]['labels'][0]
+                w = G.edges[e]['labels']
+                if((l_a,l_b,w) not in pointers):
+                    pointers[(l_a,l_b,w) ] = []
+                pointers[(l_a,l_b,w)].append((a,b))
+                
+            pointers_list.append(pointers)
+        
+        return pointers_list
+    
     def compute_kernel(self, list_graph_a, list_graph_b):
         
         na = len(list_graph_a)
         nb = len(list_graph_b)
         K = np.zeros((na,nb))
         
+        pointers_list_a = self.generate_pointers_graph(list_graph_a)
+        pointers_list_b = self.generate_pointers_graph(list_graph_b)
         
+        '''
         def kernel(i,j):
             k = 0
             G1 = list_graph_a[i]
@@ -60,13 +81,14 @@ class RandomWalkKernel:
             return k 
         
         results = Parallel(n_jobs=-1)(delayed(kernel)(i,j) for i in range(na) for j in range(nb))
+        return np.array(results).reshape(na,nb)
+        ''' 
         
-        '''
         for i in tqdm(range(na)):
             for j in range(nb):
                 k = 0
-                G1 = list_graph_a[i]
-                G2 = list_graph_b[j]
+                G1 = pointers_list_a[i]
+                G2 = pointers_list_b[j]
                 
                 if(self.n_iterations == 0):
                     k =  self.infinity_walk_kernel(G1,G2)
@@ -74,8 +96,8 @@ class RandomWalkKernel:
                     k = self.walk_kernel(G1,G2)
                 
                 K[i][j] = k
-        ''' 
-        return np.array(results).reshape(na,nb)
+       
+        return K
                 
         
 class ShortestPath:
@@ -90,7 +112,33 @@ class ShortestPath:
                     K+= f1[i][d]*f2[i][d]
          
         return K
+    
+    def generate_freq_list(self,list_graph, d):
+        
+        freq_list = []
+        for i in tqdm(range(len(list_graph))):
+            freq = dict()      
+            G1 = list_graph[i]
+            d1 = d[i]
+            for a in G1.nodes:
+                for b in G1.nodes:
+                    
+                    label_a = G1.nodes[a]['labels'][0]
+                    label_b = G1.nodes[b]['labels'][0]
+                    if(b not in d1[a]):
+                        continue
+                    if((label_a,label_b) not in freq):
+                        freq[(label_a,label_b)] = dict()
+                        
+                    if(d1[a][b] not in freq[(label_a,label_b)]):
+                        freq[(label_a,label_b)][d1[a][b]] = 0
+                    
+                    freq[(label_a,label_b)][d1[a][b]] += 1
+        
+            freq_list.append(freq)
             
+        return freq_list
+       
     def compute_kernel(self, list_graph_a, list_graph_b):
         
         na = len(list_graph_a)
@@ -102,52 +150,16 @@ class ShortestPath:
         freq_list_b = []
 
         for i in tqdm(range(len(list_graph_a))):
-            d_a.append(dict(nx.all_pairs_shortest_path_length(list_graph_a[i])))
+            d_a.append(dict(nx.all_pairs_bellman_ford_path_length(list_graph_a[i],weight='labels')))
         
         for i in tqdm(range(len(list_graph_b))):
-            d_b.append(dict(nx.all_pairs_shortest_path_length(list_graph_b[i])))
+            d_b.append(dict(nx.all_pairs_bellman_ford_path_length(list_graph_b[i],weight='labels')))
+
         
-        for i in tqdm(range(len(list_graph_a))):
-            freq = dict()      
-            G1 = list_graph_a[i]
-            d1 = d_a[i]
-            for a in G1.nodes:
-                for b in G1.nodes:
-                    
-                    label_a = G1.nodes[a]['labels'][0]
-                    label_b = G1.nodes[b]['labels'][0]
-                    if(b not in d1[a]):
-                        continue
-                    if((label_a,label_b) not in freq):
-                        freq[(label_a,label_b)] = dict()
-                        
-                    if(d1[a][b] not in freq[(label_a,label_b)]):
-                        freq[(label_a,label_b)][d1[a][b]] = 0
-                    
-                    freq[(label_a,label_b)][d1[a][b]] += 1
-        
-            freq_list_a.append(freq)
+        freq_list_a = self.generate_freq_list(list_graph_a,d_a)
+        freq_list_b = self.generate_freq_list(list_graph_b,d_b)
             
-        for i in tqdm(range(len(list_graph_b))):
-            freq = dict()      
-            G1 = list_graph_b[i]
-            d1 = d_b[i]
-            for a in G1.nodes:
-                for b in G1.nodes:
-                    
-                    label_a = G1.nodes[a]['labels'][0]
-                    label_b = G1.nodes[b]['labels'][0]
-                    if(b not in d1[a]):
-                        continue
-                    if((label_a,label_b) not in freq):
-                        freq[(label_a,label_b)] = dict()
-                        
-                    if(d1[a][b] not in freq[(label_a,label_b)]):
-                        freq[(label_a,label_b)][d1[a][b]] = 0
-                    
-                    freq[(label_a,label_b)][d1[a][b]] += 1
         
-            freq_list_b.append(freq)
         
         def kernel(i,j):
             k = 0
