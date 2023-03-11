@@ -6,6 +6,80 @@ from joblib import Parallel, delayed
 import multiprocessing
 
 
+class WalkKernel:
+    
+    def __init__(self, maxK):
+        self.maxK = maxK
+        
+    
+    def walk_kernel(self, f1, f2):
+    
+        K = 0
+       
+        for i in f1.keys():
+            if(i in f2.keys()):
+                K+= (f1[i] * f2[i])
+                
+      
+        return K
+    
+    def generate_path(self, G, bfs_dic, node, seq, paths):
+   
+        seq = seq + '#' + str(G.nodes[node]['labels'][0]) + '#'
+        paths.append(seq)
+        if(node not in bfs_dic.keys()):
+            
+            return 
+
+        for i in bfs_dic[node]:
+            
+            seq_n = seq  + str(G.edges[(node,i)]['labels']) 
+            self.generate_path(G,bfs_dic, i, seq_n, paths)
+    
+    
+    def generate_freq_list(self, list_graph):
+        
+        freq_list = []
+        for G in list_graph:
+            freq = dict()
+            for node in G.nodes:
+                bfs_dic =  dict(nx.bfs_successors(G, node, depth_limit = self.maxK))
+                paths = []
+                self.generate_path(G, bfs_dic, node, '', paths)
+                for p in paths:
+                    if(p not in freq):
+                        freq[p] = 0
+                    freq[p] += 1
+            freq_list.append(freq)
+        
+        return freq_list
+        
+    
+        
+    def compute_kernel(self, list_graph_a, list_graph_b):
+        
+        na = len(list_graph_a)
+        nb = len(list_graph_b)
+        K = np.zeros((na,nb))
+        
+        freq_list_a = []
+        freq_list_b = []
+
+
+        freq_list_a = self.generate_freq_list(list_graph_a)
+        freq_list_b = self.generate_freq_list(list_graph_b)
+            
+      
+        for i in tqdm(range(na)):
+            for j in range(nb):
+                k = self.walk_kernel(freq_list_a[i],freq_list_b[j])
+                K[i][j] = +k
+        
+        return K
+        
+    
+
+
 class RandomWalkKernel:
     
     def __init__(self, lamda = 0.5, n_iterations = 0):
@@ -24,7 +98,7 @@ class RandomWalkKernel:
     
         for i in range(self.n_iterations):
             K+= np.ones(n).T@A@np.ones(n)
-            A = A@A
+            A = self.lamda*A@A
             
         return K
     
@@ -107,13 +181,20 @@ class ShortestPath:
         K = 0
         for i in f1.keys():
             for d in f1[i]:
-                    
                 if(i in f2.keys() and d in f2[i]):
                     K+= (f1[i][d] * f2[i][d])
-                    
-             
          
         return K
+    
+    def shortest_walk_kernel(self, f1, f2):
+    
+        K = 0
+        for i in f1.keys():
+                if(i in f2.keys()):
+                    K+= (f1[i] * f2[i])
+         
+        return K
+    
     
     def generate_freq_list(self,list_graph, d):
         
@@ -140,7 +221,36 @@ class ShortestPath:
             freq_list.append(freq)
             
         return freq_list
-       
+    
+    def to_seq(self, G, path):
+        seq = ''
+        for i in range(len(path)):
+            seq = seq + '#' + str(G.nodes[path[i]]['labels'][0]) + '#'
+            if(i < len(path) - 1):
+                seq = seq + str(G.edges[(path[i],path[i+1])]['labels']) 
+        return seq           
+    
+    def generate_freq_walk_list(self, list_graph):
+        
+        freq_list = []
+        for G in tqdm(list_graph):
+            path_dict = dict(nx.all_pairs_dijkstra_path(G,weight='labels'))
+            freq = dict()
+            for i in G.nodes:
+                for j in G.nodes:
+                    if(i not in path_dict):
+                        continue
+                    if(j not in path_dict[i]):
+                        continue
+                    seq = self.to_seq(G,path_dict[i][j])
+                    if(seq not in freq):
+                        freq[seq] = 0
+                    freq[seq]+=1
+            freq_list.append(freq)
+            
+        return freq_list
+    
+    '''
     def compute_kernel(self, list_graph_a, list_graph_b):
         
         na = len(list_graph_a)
@@ -168,7 +278,26 @@ class ShortestPath:
                 K[i][j] = k
         
         return K
+    '''
+    def compute_kernel(self, list_graph_a, list_graph_b):
+        
+        na = len(list_graph_a)
+        nb = len(list_graph_b)
+        K = np.zeros((na,nb))
     
+        freq_list_a = []
+        freq_list_b = []  
+        
+        freq_list_a = self.generate_freq_walk_list(list_graph_a)
+        freq_list_b = self.generate_freq_walk_list(list_graph_b)
+            
+       
+        for i in tqdm(range(na)):
+            for j in range(nb):
+                k = self.shortest_walk_kernel(freq_list_a[i],freq_list_b[j])
+                K[i][j] = k
+        
+        return K
     
 class KShortestPath:
     

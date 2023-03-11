@@ -58,7 +58,7 @@ def compute_product_graph(G1,G2):
     if(len(list(P.nodes))==0):
         return None
          
-    A = nx.adjacency_matrix(P).A #+ np.eye(len(list(P.nodes)))
+    A = nx.adjacency_matrix(P) #+ np.eye(len(list(P.nodes)))
     
     
     return A
