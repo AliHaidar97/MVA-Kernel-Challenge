@@ -15,18 +15,19 @@ class WalkKernel:
     def walk_kernel(self, f1, f2):
     
         K = 0
-       
+        lamda = 0.8
         for i in f1.keys():
             if(i in f2.keys()):
-                K+= (f1[i] * f2[i])
+                K+= (f1[i][0] * f2[i][0])*(lamda**f1[i][1])
                 
       
         return K
     
-    def generate_path(self, G, bfs_dic, node, seq, paths):
+    def generate_path(self, G, bfs_dic, node, seq, size, paths):
    
         seq = seq + '#' + str(G.nodes[node]['labels'][0]) + '#'
-        paths.append(seq)
+        size+= 1
+        paths.append((seq, size))
         if(node not in bfs_dic.keys()):
             
             return 
@@ -34,7 +35,8 @@ class WalkKernel:
         for i in bfs_dic[node]:
             
             seq_n = seq  + str(G.edges[(node,i)]['labels']) 
-            self.generate_path(G,bfs_dic, i, seq_n, paths)
+            size_n = size + 1
+            self.generate_path(G,bfs_dic, i, seq_n, size_n, paths)
     
     
     def generate_freq_list(self, list_graph):
@@ -45,11 +47,11 @@ class WalkKernel:
             for node in G.nodes:
                 bfs_dic =  dict(nx.bfs_successors(G, node, depth_limit = self.maxK))
                 paths = []
-                self.generate_path(G, bfs_dic, node, '', paths)
+                self.generate_path(G, bfs_dic, node, '', 0, paths)
                 for p in paths:
-                    if(p not in freq):
-                        freq[p] = 0
-                    freq[p] += 1
+                    if(p[0] not in freq):
+                        freq[p] = [0, p[1]]
+                    freq[p][0] += 1
             freq_list.append(freq)
         
         return freq_list
