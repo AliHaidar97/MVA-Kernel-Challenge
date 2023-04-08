@@ -3,7 +3,6 @@ from scipy.linalg import cho_factor, cho_solve
 import numpy as np
 import cvxopt
 import cvxopt.solvers
-from sklearn.base import BaseEstimator, ClassifierMixin
 
 def to_binary(y):
     return ((y + 1) / 2).astype(int)
@@ -11,7 +10,7 @@ def to_binary(y):
 def sigmoid(x):
     return 1/(1 + np.exp(-x))
 
-class KernelSVC(BaseEstimator, ClassifierMixin):
+class KernelSVC:
     
     def __init__(self, C, epsilon = 1e-3):
         self.type = 'non-linear'
