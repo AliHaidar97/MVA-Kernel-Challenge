@@ -1,5 +1,4 @@
 from scipy import optimize
-from scipy.linalg import cho_factor, cho_solve
 import numpy as np
 import cvxopt
 import cvxopt.solvers
@@ -49,7 +48,7 @@ class KernelSVC:
         ## Assign the required attributes
         self.a = np.diag(y)@self.alpha 
         f = K_train@self.a
-        mask = ((self.alpha < self.C) & (self.alpha > 0))
+        mask = (self.alpha < self.C)
         self.b =  np.median((1 - y[mask]*f[mask])/y[mask]) #''' -----------------offset of the classifier------------------ '''
         self.norm_f = self.a.T@K_train@self.a   #'''------------------------RKHS norm of the function f ------------------------------'''
        

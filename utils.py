@@ -1,5 +1,40 @@
 import numpy as np
 import networkx as nx
+import copy
+
+def fix_graphs(train_graphs, test_graphs):
+    
+    for G in train_graphs:
+        for e in G.nodes:
+            G.nodes[e]['labels'] = [G.nodes[e]['labels'][0], 1]
+
+    for G in test_graphs:
+        for e in G.nodes:
+            G.nodes[e]['labels'] = [G.nodes[e]['labels'][0], 1]
+
+    for G in train_graphs:
+        for e in G.edges:
+            G.edges[e]['labels'] = G.edges[e]['labels'][0] + 1
+
+    for G in test_graphs:
+        for e in G.edges:
+            G.edges[e]['labels'] = G.edges[e]['labels'][0] + 1
+            
+    return train_graphs, test_graphs
+
+
+
+def morgan_index(graphs):
+    
+    for (i,G) in enumerate(graphs):
+        K = copy.deepcopy(G)
+        for node in G.nodes:
+            K.nodes[node]['labels'][1] = 0
+            for x in G.neighbors(node):
+                K.nodes[node]['labels'][1]  += G.nodes[x]['labels'][1]
+        graphs[i] = K 
+
+    return graphs
 
 def compute_product_graph(G1,G2):
     
@@ -18,7 +53,7 @@ def compute_product_graph(G1,G2):
     if(len(list(P.nodes))==0):
         return None
          
-    A = nx.adjacency_matrix(P) #+ np.eye(len(list(P.nodes)))
+    A = nx.adjacency_matrix(P) 
     
     
     return A
