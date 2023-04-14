@@ -1,4 +1,4 @@
-#Graph Classification with Kernel Methods
+# Graph Classification with Kernel Methods
 This code is a part of a project that uses kernel methods to classify graphs. The main function of this code loads the training and test data, and computes the classification results using kernel methods.
 
 ## Usage
