@@ -10,12 +10,12 @@ if you use precomputed, please ensure that the precomputed kernels exist in prec
 ## Input
 This code requires the following input files in the data/ directory:
 
-. training_data.pkl: A pickle file containing the training data.
-. test_data.pkl: A pickle file containing the test data.
-. training_labels.pkl: A pickle file containing the labels of the training data.
+- training_data.pkl: A pickle file containing the training data.
+- test_data.pkl: A pickle file containing the test data.
+- training_labels.pkl: A pickle file containing the labels of the training data.
 ## Output
 This code generates the following output files in the new_submissions/ directory:
 
-. sub_full_dataset.csv: The classification results for the full dataset.
-. sub_bootstrap.csv: The classification results for the bootstrap dataset.
-. sub_merge.csv: The classification results obtained by merging the results of the full dataset and the bootstrap dataset.
+- sub_full_dataset.csv: The classification results for the full dataset.
+- sub_bootstrap.csv: The classification results for the bootstrap dataset.
+- sub_merge.csv: The classification results obtained by merging the results of the full dataset and the bootstrap dataset.
