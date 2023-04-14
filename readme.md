@@ -4,7 +4,8 @@ This code is a part of a project that uses kernel methods to classify graphs. Th
 ## Usage
 To use this code, run the following command:
 python main.py [-h] [-p PRECOMPUTED]
-The optional argument -p or --precomputed can be used to specify whether to use precomputed kernel or not. The default value is 0, which means that the kernel will be computed during the run.
+The optional argument -p or --precomputed can be used to specify whether to use precomputed kernel or not.
+The default value is 0, which means that the kernel will be computed during the run.
 if you use precomputed, please ensure that the precomputed kernels exist in precomputed_kernels folder. (The data is larger than 1GB)
 
 ## Input
