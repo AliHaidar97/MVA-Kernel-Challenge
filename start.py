@@ -27,12 +27,12 @@ def main(precomputed = 0):
         test_graphs = utils.morgan_index(test_graphs)
         
             
-    sub_full_dataset = compute_results.compute_results_full_dataset(train_graphs, test_graphs, train_labels, precomputed)
+    sub_full_dataset = compute_results.compute_results_full_dataset(train_graphs.copy(), test_graphs.copy(), train_labels.copy(), precomputed)
     sub_full_dataset.to_csv("new_submissions/sub_full_dataset.csv", index=False)
     
     if(precomputed == 0):
         
-        sub_bootstrap = compute_results.compute_results_bootstrap(train_graphs, test_graphs, train_labels)
+        sub_bootstrap = compute_results.compute_results_bootstrap(train_graphs.copy(), test_graphs.copy(), train_labels.copy())
         sub_bootstrap.to_csv("new_submissions/sub_bootstrap.csv", index=False)
         
         sub_merge = sub_full_dataset.copy()
