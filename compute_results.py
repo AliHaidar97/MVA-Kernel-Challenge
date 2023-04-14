@@ -37,6 +37,9 @@ def compute_results_full_dataset(train_graphs, test_graphs, train_labels, precom
         K_train = np.loadtxt('precomputed_kernels/train_morgan_index_1.csv', delimiter=',')
         K_test = np.loadtxt('precomputed_kernels/test_morgan_index_1.csv', delimiter=',')
     
+    np.savetxt('precomputed_kernels/train_morgan_index_1.csv', K_train, delimiter=',')
+    np.savetxt('precomputed_kernels/test_morgan_index_1.csv', K_test, delimiter=',')
+    
     # Preprocess the training labels to -1 or 1.
     y_train = train_labels
     y_train = np.array(y_train).reshape(-1)
